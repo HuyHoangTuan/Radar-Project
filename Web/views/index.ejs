@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            body{
+                margin: 0;
+                padding: 0;
+                background-color: black;
+            }
+            .circle{
+                z-index: 10;
+                position: absolute  ;
+                border-radius: 50%;
+                border: 1px solid rgb(26, 196, 26);
+            }
+            .circle:nth-child(1)
+            {
+                width: 100%;
+                height: 100%;
+            }
+            .circle:nth-child(2)
+            {
+                margin:12.5%;
+                width: 75%;
+                height: 75%;
+            }
+            .circle:nth-child(3)
+            {
+                margin:25%;
+                width: 50%;
+                height: 50%;
+            }
+            .circle:nth-child(4)
+            {
+                margin:37.5%;
+                width: 25%;
+                height: 25%;
+                
+            }
+
+            .line{
+                z-index: 10;
+                position: absolute;
+                height: 120%;
+                width: 1px;
+                left: 50%;
+                margin-top: -10%;
+
+                background-color: green;
+            }
+            .line:nth-child(5)
+            {
+                left:50%;
+            }
+            .line:nth-child(6)
+            {
+                transform: rotate(90deg);
+            }
+            .line:nth-child(7)
+            {
+                transform: rotate(30deg);
+            }
+            .line:nth-child(8)
+            {
+                transform: rotate(60deg);
+            }
+            .line:nth-child(9)
+            {
+                transform: rotate(120deg);
+            }
+            .line:nth-child(10)
+            {
+                transform: rotate(150deg);
+            }
+            #CV01{
+                z-index: 10;
+            }
+            #container {
+                height: 100%;
+                aspect-ratio: 1;
+                position: absolute;
+                top: 0;
+                transform: rotate(90deg);
+		    }
+            @keyframes shine {
+            from {
+                opacity: 1;
+                }
+
+                to {
+                    opacity: 0;
+                }
+            }
+
+            @keyframes roll {
+                from {
+                    transform: rotate(0deg);
+                }
+
+                to {
+                    transform: rotate(360deg);
+
+                }
+            }
+
+            .spinner {
+                position: absolute;
+                top: 50%;
+                width: 50%;
+                height: 5px;
+                transform-origin: 100% 50%;
+                animation: shine 8s;
+                background-color: rgb(10, 78, 10);
+                animation-iteration-count: infinite;
+                animation-timing-function: cubic-bezier(0, 1, 0, 0.95);
+                opacity: 0;
+            }
+            .conic {
+                position: absolute;
+                background: conic-gradient(from -90deg, #000 270deg, rgba(36, 148, 21, 0.364));
+
+                border-radius: 50%;
+
+                width: 100%;
+                height: 100%;
+
+                animation: roll 8s linear;
+                animation-iteration-count: infinite;
+                animation-delay: 0s;
+            }
+            .spinner > div{
+                transition: width 0.5s;
+            }
+        </style>
+    </head>
+    <body>
+        
+        <div id = "map" style="position : fixed; width: 601px; height: 601px; top: 50%; left: 50% ;transform: translate(-50%,-50%)">
+            
+            <div class = "circle"></div>
+            <div class = "circle"></div>
+            <div class = "circle"></div>
+            <div class = "circle"></div>
+            
+            <div class = "line"></div>
+            <div class = "line"></div>
+            <div class = "line"></div>
+            <div class = "line"></div>
+            <div class = "line"></div>
+            <div class = "line"></div>
+
+            <canvas id = "CV01" width="601px" height="601px">
+
+            </canvas>
+            <div id="container"></div>
+        </div>
+        <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+        <script>
+            function wss()
+            {
+                let socket = new WebSocket('ws://192.168.1.235:8080/ws');
+                socket.onmessage = function(event)
+                {
+                    if(event.data instanceof Blob) return;
+                    ////console.log(event.data);
+                    let container = document.getElementById("container");
+                    
+                    let child = container.childNodes;
+                    let incomeMsg = event.data;
+                    let stats = incomeMsg.split(' ');
+                    for(let i=0;i<8; i+=2)
+                    {
+                        let distance = stats[i];
+                        let angle = (Math.round(stats[i+1]/100)+360)%360;  
+                        if(distance == 0) distance = 300;
+                        child[angle+1].childNodes[0].style.width = `${100-distance/3}%`;
+                    }
+                }
+            }
+        </script>
+        
+        <script>
+            var canvas = document.getElementById('CV01');
+
+            function cir() {
+                let elm = document.getElementById("container");
+                let n = 360;
+                let t = 8;
+                let conic = document.createElement("div");
+                conic.className = "conic";
+                elm.appendChild(conic);
+                for (let i = 0; i < n; i++) 
+                {
+                    let line = document.createElement("div");
+                    line.className = "spinner";
+                    line.style.transform = `rotate(${(360 * i) / n}deg)`
+                    line.style.animationDelay = `${(t / n) * i}s`
+                    elm.appendChild(line)
+
+                    let redline = document.createElement("div");
+                    redline.style.backgroundColor = "red";
+                    redline.style.width = "0%";
+                    redline.style.height = "100%";
+                    line.appendChild(redline);
+                }
+            }
+            window.onload = () => {cir(); wss();};
+        </script>
+    </body>
+</html>
